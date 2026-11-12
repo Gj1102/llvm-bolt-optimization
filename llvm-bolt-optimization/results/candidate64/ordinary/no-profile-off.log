@@ -1,0 +1,12 @@
+BOLT-INFO: Target architecture: x86_64
+BOLT-INFO: BOLT version: 4794d35597983f112aafad8d72a5469d80163b7c
+BOLT-INFO: first alloc address is 0x400000
+BOLT-INFO: creating new program header table at address 0x600000, offset 0x200000
+BOLT-WARNING: debug info will be stripped from the binary. Use -update-debug-sections to keep it.
+BOLT-INFO: enabling relocation mode
+BOLT-INFO: enabling lite mode
+BOLT-INFO: 0 out of 11 functions in the binary (0.0%) have non-empty execution profile
+BOLT-INFO: removed 2 empty blocks
+BOLT-INFO: dumped function order to /home/gj/bolt-course-4794/experiments64/ordinary/no-profile-off.order
+BOLT-INFO: patched build-id (flipped first and last bits)
+BOLT-INFO: setting _end to 0x8003ec

@@ -1,0 +1,17 @@
+[
+  "-O2",
+  "-g",
+  "-fno-pie",
+  "-no-pie",
+  "-fno-inline",
+  "-fno-ipa-icf",
+  "-fno-optimize-sibling-calls",
+  "-fno-toplevel-reorder",
+  "-fno-reorder-functions",
+  "-fno-reorder-blocks-and-partition",
+  "-falign-functions=1",
+  "-falign-jumps=1",
+  "-falign-loops=1",
+  "-falign-labels=1",
+  "-Wl,--emit-relocs"
+]

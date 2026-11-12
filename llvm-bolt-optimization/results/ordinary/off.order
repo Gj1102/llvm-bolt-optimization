@@ -1,0 +1,9 @@
+_init
+_start
+deregister_tm_clones/1
+register_tm_clones/1
+__do_global_dtors_aux/1
+frame_dummy/1
+compute
+main
+_fini

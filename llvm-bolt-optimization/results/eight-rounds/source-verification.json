@@ -1,0 +1,12 @@
+{
+  "llvm_revision": "4794d35597983f112aafad8d72a5469d80163b7c",
+  "hash_normalization": "UTF-8 text, LF line endings",
+  "patch_apply_check": "passed",
+  "sha256": {
+    "baseline_source": "b8b426f2fa68e68932884fb05ff84aed0155937ca889f18fc2252e351706c5f6",
+    "patched_source": "a27bcfda527d9a3852dc93781f1c5963fd22a8bfc6220fec42caa65524006d51",
+    "baseline_header": "c7dffa993fe3b16f336bcb92bd289324f37e8c0955462acf58b889420a88d2d5",
+    "patched_header": "98733826bf0ee39366b05c473c60d8477257d82774f355d786a98d6d3623c517",
+    "patch": "2b27b24fe99593f0716714f53272c06bd0eee1747ca4252b66021c54b4796e3b"
+  }
+}

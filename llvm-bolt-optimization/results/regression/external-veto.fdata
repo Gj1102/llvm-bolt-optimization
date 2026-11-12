@@ -1,0 +1,8 @@
+0 [unknown] 0 1 main 0 0 10000
+1 main 4 1 small_a 0 0 10000
+1 main b 1 main d 0 100
+1 main b 1 main 12 0 9900
+1 main d 1 small_b 0 0 100
+1 small_a 2 1 small_a 4 0 100
+1 small_a 2 1 small_a 11 0 9900
+1 small_a 8 1 large_c 0 0 100

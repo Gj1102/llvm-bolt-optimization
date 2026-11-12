@@ -1,0 +1,6 @@
+{
+  "repeats": 31,
+  "min_seconds_target": 1.5,
+  "order_seed": 456,
+  "cpu": 0
+}

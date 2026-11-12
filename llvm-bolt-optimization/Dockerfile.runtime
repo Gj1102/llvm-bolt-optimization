@@ -1,0 +1,14 @@
+# Build using the external context prepared by scripts/package_runtime.sh.
+# The source-build Dockerfile remains the reproducible compilation entrypoint.
+ARG BASE_IMAGE=ubuntu:24.04
+FROM ${BASE_IMAGE}
+ENV DEBIAN_FRONTEND=noninteractive
+COPY toolchain/ /
+COPY runtime/ /opt/bolt/
+COPY llvm-test-tools/ /opt/llvm/
+COPY project/ /project/
+ENV BOLT=/opt/bolt/bin/llvm-bolt
+ENV LLVM_SOURCE=/opt/llvm
+ENV WORK=/tmp/bolt-experiments
+WORKDIR /project
+CMD ["bash", "scripts/run_all.sh"]

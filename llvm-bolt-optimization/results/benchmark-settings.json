@@ -1,0 +1,8 @@
+{
+  "repeats": 31,
+  "order_seed": 123,
+  "min_seconds_target": 1,
+  "cpu": 0,
+  "max_refinement_rounds": 64,
+  "source": "candidate64 experiment command; original rows preserved"
+}

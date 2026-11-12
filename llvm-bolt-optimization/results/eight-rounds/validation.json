@@ -1,0 +1,26 @@
+{
+  "verified_date": "2026-11-11",
+  "llvm_revision": "4794d35597983f112aafad8d72a5469d80163b7c",
+  "release_build_with_assertions": "passed",
+  "patch_apply_check": "passed",
+  "lit_tests_passed": 1,
+  "functional_checks": [
+    "correlated: 16 output comparisons; model monotonicity; default-off order",
+    "dispersed: 16 output comparisons; model monotonicity; default-off order",
+    "ordinary: 16 output comparisons; model monotonicity; default-off order",
+    "ordinary: zero swaps and identical order",
+    "missing profile: skipped; identical order and output"
+  ],
+  "regression_checks": [
+    "accept: passed; swaps=1",
+    "tie: passed; swaps=0",
+    "external-veto: passed; swaps=0",
+    "low-count: passed; swaps=0",
+    "explicit user order: skipped and preserved",
+    "missing relocations: skipped; executable runs"
+  ],
+  "timed_runs": 225,
+  "runs_per_case_and_mode": 15,
+  "binary_artifacts_in_submission": [],
+  "docker_image_validation": "not completed: configured registry mirror timed out; see docker-check.log"
+}

@@ -1,0 +1,68 @@
+[
+  {
+    "case": "correlated",
+    "baseline": "off",
+    "treatment": "on",
+    "paired_median_gain_percent": 2.4420507437798555,
+    "bootstrap_95_percentile_interval_percent": [
+      1.8778505199376516,
+      3.1251878350304074
+    ],
+    "note": "Exploratory paired-block bootstrap; assumes independent repeat blocks. VM/frequency effects may violate this assumption."
+  },
+  {
+    "case": "correlated",
+    "baseline": "cdsort",
+    "treatment": "cdsort-on",
+    "paired_median_gain_percent": -0.24414189526147378,
+    "bootstrap_95_percentile_interval_percent": [
+      -1.1051991921344761,
+      0.8384914275358701
+    ],
+    "note": "Exploratory paired-block bootstrap; assumes independent repeat blocks. VM/frequency effects may violate this assumption."
+  },
+  {
+    "case": "dispersed",
+    "baseline": "off",
+    "treatment": "on",
+    "paired_median_gain_percent": 0.603001327373831,
+    "bootstrap_95_percentile_interval_percent": [
+      -0.25781988220121566,
+      1.1028874708746694
+    ],
+    "note": "Exploratory paired-block bootstrap; assumes independent repeat blocks. VM/frequency effects may violate this assumption."
+  },
+  {
+    "case": "dispersed",
+    "baseline": "cdsort",
+    "treatment": "cdsort-on",
+    "paired_median_gain_percent": 0.5174424350533502,
+    "bootstrap_95_percentile_interval_percent": [
+      -0.4585907866806016,
+      0.7584032930545437
+    ],
+    "note": "Exploratory paired-block bootstrap; assumes independent repeat blocks. VM/frequency effects may violate this assumption."
+  },
+  {
+    "case": "ordinary",
+    "baseline": "off",
+    "treatment": "on",
+    "paired_median_gain_percent": 0.8477576204624304,
+    "bootstrap_95_percentile_interval_percent": [
+      -0.03545270145957069,
+      1.5008141223400662
+    ],
+    "note": "Exploratory paired-block bootstrap; assumes independent repeat blocks. VM/frequency effects may violate this assumption."
+  },
+  {
+    "case": "ordinary",
+    "baseline": "cdsort",
+    "treatment": "cdsort-on",
+    "paired_median_gain_percent": -0.11028241304369413,
+    "bootstrap_95_percentile_interval_percent": [
+      -0.917566325290764,
+      0.674891445127479
+    ],
+    "note": "Exploratory paired-block bootstrap; assumes independent repeat blocks. VM/frequency effects may violate this assumption."
+  }
+]

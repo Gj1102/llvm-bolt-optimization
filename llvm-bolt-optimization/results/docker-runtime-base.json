@@ -1,0 +1,44 @@
+[
+    {
+        "Id": "sha256:6be099eb1a2259fe268e7c34f6b8aeef68ef57377c0cbb97d5d2c45a824d7ba0",
+        "RepoTags": [
+            "ubuntu:24.04"
+        ],
+        "RepoDigests": [
+            "ubuntu@sha256:6be099eb1a2259fe268e7c34f6b8aeef68ef57377c0cbb97d5d2c45a824d7ba0"
+        ],
+        "Created": "2026-10-25T14:17:47.841356155Z",
+        "Config": {
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            ],
+            "Cmd": [
+                "/bin/bash"
+            ],
+            "Labels": {
+                "org.opencontainers.image.version": "24.04"
+            }
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 80696236,
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:bec87777bc2fb2edcdf9af11df1531469e7df911309c1413082b18fcb8610278"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2026-11-11T15:19:18.467880476Z"
+        },
+        "Descriptor": {
+            "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
+            "digest": "sha256:6be099eb1a2259fe268e7c34f6b8aeef68ef57377c0cbb97d5d2c45a824d7ba0",
+            "size": 424,
+            "annotations": {
+                "io.containerd.image.name": "docker.io/library/ubuntu:24.04",
+                "org.opencontainers.image.ref.name": "24.04"
+            }
+        }
+    }
+]

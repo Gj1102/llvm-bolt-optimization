@@ -1,0 +1,7 @@
+-- Testing: 1 tests, 1 workers --
+PASS: BOLT small-function-layout :: small-function-layout.s (1 of 1)
+
+Testing Time: 0.25s
+
+Total Discovered Tests: 1
+  Passed: 1 (100.00%)

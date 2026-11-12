@@ -1,0 +1,24 @@
+[
+  {
+    "case": "correlated",
+    "baseline": "off",
+    "treatment": "on",
+    "paired_median_gain_percent": 2.631198077578223,
+    "bootstrap_95_percentile_interval_percent": [
+      1.2083793424590539,
+      4.3082009117783375
+    ],
+    "note": "Exploratory paired-block bootstrap; assumes independent repeat blocks. VM/frequency effects may violate this assumption."
+  },
+  {
+    "case": "correlated",
+    "baseline": "cdsort",
+    "treatment": "cdsort-on",
+    "paired_median_gain_percent": -1.0374369332401434,
+    "bootstrap_95_percentile_interval_percent": [
+      -2.584313692306184,
+      0.3016978552822458
+    ],
+    "note": "Exploratory paired-block bootstrap; assumes independent repeat blocks. VM/frequency effects may violate this assumption."
+  }
+]

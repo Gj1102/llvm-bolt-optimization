@@ -1,0 +1,8 @@
+LLVM (http://llvm.org/):
+  LLVM version 24.0.0git
+  Optimized build with assertions.
+BOLT revision 4794d35597983f112aafad8d72a5469d80163b7c
+
+  Registered Targets:
+    x86    - 32-bit X86: Pentium-Pro and above
+    x86-64 - 64-bit X86: EM64T and AMD64

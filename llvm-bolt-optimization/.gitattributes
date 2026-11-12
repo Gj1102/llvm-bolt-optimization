@@ -1,0 +1,7 @@
+* text=auto
+*.sh text eol=lf
+*.py text eol=lf
+*.patch text eol=lf
+*.s text eol=lf
+Dockerfile text eol=lf
+LLVM_REVISION text eol=lf

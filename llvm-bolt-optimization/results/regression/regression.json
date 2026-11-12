@@ -1,0 +1,10 @@
+{
+  "passed": [
+    "accept: passed; swaps=1",
+    "tie: passed; swaps=0",
+    "external-veto: passed; swaps=0",
+    "low-count: passed; swaps=0",
+    "explicit user order: skipped and preserved",
+    "missing relocations: skipped; executable runs"
+  ]
+}

@@ -1,0 +1,322 @@
+diff --git a/bolt/lib/Passes/ReorderFunctions.cpp b/bolt/lib/Passes/ReorderFunctions.cpp
+--- a/bolt/lib/Passes/ReorderFunctions.cpp
++++ b/bolt/lib/Passes/ReorderFunctions.cpp
+@@ -17,6 +17,7 @@
+ #include "llvm/ADT/StringMap.h"
+ #include "llvm/Support/CommandLine.h"
+ #include "llvm/Transforms/Utils/CodeLayout.h"
++#include <cmath>
+ #include <fstream>
+ 
+ #define DEBUG_TYPE "hfsort"
+@@ -27,6 +28,9 @@
+ 
+ extern cl::OptionCategory BoltOptCategory;
+ extern cl::opt<unsigned> Verbosity;
++extern cl::opt<bool> HotFunctionsAtEnd;
++extern cl::opt<bool> HotText;
++extern bool isHotTextMover(const bolt::BinaryFunction &Function);
+ extern cl::opt<uint32_t> RandomSeed;
+ 
+ extern size_t padFunctionBefore(const bolt::BinaryFunction &Function);
+@@ -54,6 +58,11 @@
+                clEnumValN(bolt::ReorderFunctions::RT_USER, "user",
+                           "use function order specified by -function-order")),
+     cl::cat(BoltOptCategory));
++
++static cl::opt<bool> SmallFunctionLayout(
++    "small-function-layout",
++    cl::desc("refine small-function order using weighted call distance"),
++    cl::init(false), cl::cat(BoltOptCategory));
+ 
+ static cl::opt<bool> ReorderFunctionsUseHotSize(
+     "reorder-functions-use-hot-size",
+@@ -339,6 +348,146 @@
+               << InvalidEntries << " entries in -function-order list\n";
+ 
+   return Index;
++}
++
++// Refine an existing order without moving functions across ineligible functions.
++// Addresses below describe a packed layout using BOLT's estimated function sizes;
++// they are a locality model, not final emitted addresses (alignment may differ).
++static void refineSmallFunctionLayout(BinaryContext &BC) {
++  const bool HasHotTextMovers =
++      opts::HotText &&
++      llvm::any_of(llvm::make_second_range(BC.getBinaryFunctions()),
++                   [](const BinaryFunction &BF) {
++                     return opts::isHotTextMover(BF);
++                   });
++  if (!BC.HasRelocations || !opts::FunctionOrderFile.empty() ||
++      opts::HotFunctionsAtEnd || HasHotTextMovers ||
++      opts::ReorderFunctions == ReorderFunctions::RT_USER ||
++      opts::ReorderFunctions == ReorderFunctions::RT_RANDOM) {
++    BC.outs() << "BOLT-INFO: small-function-layout: skipped (unsupported order)\n";
++    return;
++  }
++
++  // Build a fresh graph: CDSort may have adjusted the original graph's weights.
++  // Do not recover stale profiles or substitute block counts for call counts.
++  BinaryFunctionCallGraph Graph = buildCallGraph(
++      BC,
++      [&BC](const BinaryFunction &BF) {
++        return !BC.shouldEmit(BF) || !BF.hasValidProfile() || BF.isIgnored() ||
++               BF.getState() != BinaryFunction::State::CFG;
++      },
++      /*CgFromPerfData=*/false, /*IncludeSplitCalls=*/true,
++      /*UseFunctionHotSize=*/false, /*UseSplitHotSize=*/false,
++      /*UseEdgeCounts=*/true, /*IgnoreRecursiveCalls=*/true);
++  // This also finalizes the weighted average call-site offsets.
++  Graph.normalizeArcWeights();
++
++  BinaryFunctionListType Order;
++  for (auto &It : BC.getBinaryFunctions())
++    if (BC.shouldEmit(It.second))
++      Order.push_back(&It.second);
++  llvm::stable_sort(Order, compareBinaryFunctionByIndex);
++
++  std::vector<uint64_t> Address(Graph.numNodes());
++  uint64_t Offset = 0;
++  for (BinaryFunction *BF : Order) {
++    NodeId Id = Graph.maybeGetNodeId(BF);
++    if (Id != CallGraph::InvalidId)
++      Address[Id] = Offset;
++    Offset += std::max<uint64_t>(BF->estimateSize(), 1);
++  }
++
++  struct Edge {
++    NodeId Src, Dst;
++    double Weight, CallOffset;
++  };
++  std::vector<Edge> Edges;
++  std::vector<std::vector<size_t>> Incident(Graph.numNodes());
++  for (NodeId Src = 0; Src < Graph.numNodes(); ++Src) {
++    for (NodeId Dst : Graph.successors(Src)) {
++      const Arc &A = *Graph.findArc(Src, Dst);
++      if (Src == Dst || !Graph.nodeIdToFunc(Src)->hasValidProfile() ||
++          !Graph.nodeIdToFunc(Dst)->hasValidProfile() ||
++          !std::isfinite(A.weight()) || A.weight() <= 0 ||
++          !std::isfinite(A.avgCallOffset()) || A.avgCallOffset() < 0)
++        continue;
++      Incident[Src].push_back(Edges.size());
++      Incident[Dst].push_back(Edges.size());
++      Edges.push_back({Src, Dst, A.weight(), A.avgCallOffset()});
++    }
++  }
++
++  auto Cost = [&](const Edge &E) -> long double {
++    return static_cast<long double>(E.Weight) *
++           std::abs(static_cast<long double>(Address[E.Src]) + E.CallOffset -
++                    static_cast<long double>(Address[E.Dst]));
++  };
++  auto TotalCost = [&]() {
++    long double Total = 0;
++    for (const Edge &E : Edges)
++      Total += Cost(E);
++    return Total;
++  };
++  auto Eligible = [&](BinaryFunction *BF) {
++    NodeId Id = Graph.maybeGetNodeId(BF);
++    return Id != CallGraph::InvalidId && !Incident[Id].empty() &&
++           BF->hasValidIndex() && BF->hasValidProfile() && BF->isSimple() &&
++           !BF->isIgnored() && !BF->isPLTFunction() && !BF->isSplit() &&
++           BF->getState() == BinaryFunction::State::CFG &&
++           BF->getKnownExecutionCount() >= 100 && BF->estimateSize() > 0 &&
++           BF->estimateSize() <= 128 && !opts::padFunctionBefore(*BF) &&
++           !opts::padFunctionAfter(*BF);
++  };
++
++  if (Edges.empty()) {
++    BC.outs() << "BOLT-INFO: small-function-layout: skipped (no valid call edges)\n";
++    return;
++  }
++
++  const long double Before = TotalCost();
++  uint64_t Swaps = 0;
++  // A fixed bound keeps the refinement inexpensive and deterministic.
++  for (unsigned Round = 0; Round < 8; ++Round) {
++    bool Changed = false;
++    for (size_t I = 1; I < Order.size(); ++I) {
++      BinaryFunction *Left = Order[I - 1], *Right = Order[I];
++      if (!Eligible(Left) || !Eligible(Right))
++        continue;
++      NodeId A = Graph.maybeGetNodeId(Left);
++      NodeId B = Graph.maybeGetNodeId(Right);
++      // Only edges incident to A or B can change. Include external edges and
++      // count shared edges once; inspecting only A<->B would miss regressions.
++      auto AffectedCost = [&]() {
++        long double Total = 0;
++        for (size_t E : Incident[A])
++          Total += Cost(Edges[E]);
++        for (size_t E : Incident[B])
++          if (Edges[E].Src != A && Edges[E].Dst != A)
++            Total += Cost(Edges[E]);
++        return Total;
++      };
++      const long double OldCost = AffectedCost();
++      const uint64_t OldA = Address[A], OldB = Address[B];
++      Address[B] = OldA;
++      Address[A] = OldA + Right->estimateSize();
++      const long double NewCost = AffectedCost();
++      if (NewCost + 1e-12L * std::max(1.0L, OldCost) < OldCost) {
++        Left->swapIndex(*Right);
++        std::swap(Order[I - 1], Order[I]);
++        ++Swaps;
++        Changed = true;
++      } else {
++        Address[A] = OldA;
++        Address[B] = OldB;
++      }
++    }
++    if (!Changed)
++      break;
++  }
++  BC.outs() << "BOLT-INFO: small-function-layout: swaps=" << Swaps
++            << format(" weighted-distance-before=%.0f after=%.0f\n",
++                      static_cast<double>(Before),
++                      static_cast<double>(TotalCost()));
+ }
+ 
+ Error ReorderFunctions::runOnFunctions(BinaryContext &BC) {
+@@ -522,6 +671,9 @@
+ 
+   reorder(BC, std::move(Clusters), BFs, UserFileEndIndex);
+ 
++  if (opts::SmallFunctionLayout)
++    refineSmallFunctionLayout(BC);
++
+   BC.HasFinalizedFunctionOrder = true;
+ 
+   std::unique_ptr<std::ofstream> FuncsFile;
+diff --git a/bolt/test/X86/small-function-layout.s b/bolt/test/X86/small-function-layout.s
+new file mode 100644
+--- /dev/null
++++ b/bolt/test/X86/small-function-layout.s
+@@ -0,0 +1,111 @@
++# REQUIRES: system-linux
++# RUN: llvm-mc -filetype=obj -triple x86_64-unknown-linux %s -o %t.o
++# RUN: link_fdata %s %t.o %t.fdata
++# RUN: %clang %cflags %t.o -o %t.exe -Wl,-q
++# RUN: llvm-bolt %t.exe --data=%t.fdata --reorder-functions=none \
++# RUN:   --reorder-blocks=none --split-functions=0 --align-functions=1 \
++# RUN:   --small-function-layout --generate-function-order=%t.order \
++# RUN:   -o %t.good 2>&1 | FileCheck %s --check-prefix=GOOD
++# RUN: FileCheck %s --input-file=%t.order --check-prefix=ORDER
++# RUN: link_fdata %s %t.o %t.bad.fdata VETO
++# RUN: llvm-bolt %t.exe --data=%t.bad.fdata --reorder-functions=none \
++# RUN:   --reorder-blocks=none --split-functions=0 --align-functions=1 \
++# RUN:   --small-function-layout -o %t.bad 2>&1 | FileCheck %s --check-prefix=KEEP
++# RUN: link_fdata %s %t.o %t.tie.fdata TIEPROFILE
++# RUN: llvm-bolt %t.exe --data=%t.tie.fdata --reorder-functions=none \
++# RUN:   --reorder-blocks=none --split-functions=0 --align-functions=1 \
++# RUN:   --small-function-layout -o %t.tie 2>&1 | FileCheck %s --check-prefix=KEEP
++# RUN: llvm-bolt %t.exe --small-function-layout -o %t.nodata 2>&1 \
++# RUN:   | FileCheck %s --check-prefix=NODATA
++# GOOD: small-function-layout: swaps=1
++# KEEP: small-function-layout: swaps=0
++# NODATA: small-function-layout: skipped (no valid call edges)
++# ORDER: main
++# ORDER-NEXT: small_b
++# ORDER-NEXT: small_a
++# ORDER-NEXT: large_c
++# FDATA: 0 [unknown] 0 1 main 0 0 1000
++# FDATA: 1 main 4 1 small_a 0 0 1000
++# FDATA: 1 main b 1 main d 0 100
++# FDATA: 1 main b 1 main 12 0 900
++# FDATA: 1 main d 1 small_b 0 0 100
++# FDATA: 1 small_a 2 1 small_a 4 0 100
++# FDATA: 1 small_a 2 1 small_a 11 0 900
++# FDATA: 1 small_a 8 1 large_c 0 0 100
++# VETO: 0 [unknown] 0 1 main 0 0 10000
++# VETO: 1 main 4 1 small_a 0 0 10000
++# VETO: 1 main b 1 main d 0 100
++# VETO: 1 main b 1 main 12 0 9900
++# VETO: 1 main d 1 small_b 0 0 100
++# VETO: 1 small_a 2 1 small_a 4 0 100
++# VETO: 1 small_a 2 1 small_a 11 0 9900
++# VETO: 1 small_a 8 1 large_c 0 0 100
++# TIEPROFILE: 0 [unknown] 0 1 main 0 0 1900
++# TIEPROFILE: 1 main 4 1 small_a 0 0 1900
++# TIEPROFILE: 1 main b 1 main d 0 100
++# TIEPROFILE: 1 main b 1 main 12 0 1800
++# TIEPROFILE: 1 main d 1 small_b 0 0 100
++# TIEPROFILE: 1 small_a 2 1 small_a 4 0 100
++# TIEPROFILE: 1 small_a 2 1 small_a 11 0 1800
++# TIEPROFILE: 1 small_a 8 1 large_c 0 0 100
++
++# A and B are adjacent small functions. main and C exceed 128 bytes.
++# Moving A right shortens A->C but lengthens main->A. The regression runner
++# varies main->A's weight to exercise acceptance, ties, and external-edge veto.
++.text
++.globl main
++.type main,@function
++main:
++  .cfi_startproc
++  subq $8, %rsp
++  .cfi_adjust_cfa_offset 8
++  call small_a
++  testl %edi, %edi
++  je .Lskip_b
++  call small_b
++.Lskip_b:
++  .rept 80
++  addl $1, %eax
++  .endr
++  xorl %eax, %eax
++  addq $8, %rsp
++  .cfi_adjust_cfa_offset -8
++  ret
++  .cfi_endproc
++.size main, .-main
++
++.globl small_a
++.type small_a,@function
++small_a:
++  .cfi_startproc
++  testl %edi, %edi
++  je .Lskip_c
++  subq $8, %rsp
++  .cfi_adjust_cfa_offset 8
++  call large_c
++  addq $8, %rsp
++  .cfi_adjust_cfa_offset -8
++.Lskip_c:
++  ret
++  .cfi_endproc
++.size small_a, .-small_a
++
++.globl small_b
++.type small_b,@function
++small_b:
++  .cfi_startproc
++  ret
++  .cfi_endproc
++.size small_b, .-small_b
++
++.globl large_c
++.type large_c,@function
++large_c:
++  .cfi_startproc
++  .rept 80
++  addl $1, %eax
++  .endr
++  ret
++  .cfi_endproc
++.size large_c, .-large_c
++.section .note.GNU-stack,"",@progbits
+diff --git a/bolt/include/bolt/Core/BinaryFunction.h b/bolt/include/bolt/Core/BinaryFunction.h
+--- a/bolt/include/bolt/Core/BinaryFunction.h
++++ b/bolt/include/bolt/Core/BinaryFunction.h
+@@ -1234,6 +1234,12 @@
+     Index = Idx;
+   }
+ 
++  /// Exchange two already assigned streaming order indices.
++  void swapIndex(BinaryFunction &Other) {
++    assert(hasValidIndex() && Other.hasValidIndex());
++    std::swap(Index, Other.Index);
++  }
++
+   /// Return offset of the function body in the binary file.
+   uint64_t getFileOffset() const {
+     return getLayout().getMainFragment().getFileOffset();

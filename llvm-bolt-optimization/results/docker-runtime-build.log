@@ -1,0 +1,46 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 517B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/ubuntu:24.04
+#2 DONE 3.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 84B done
+#3 DONE 0.0s
+
+#4 [1/6] FROM docker.io/library/ubuntu:24.04@sha256:6be099eb1a2259fe268e7c34f6b8aeef68ef57377c0cbb97d5d2c45a824d7ba0
+#4 resolve docker.io/library/ubuntu:24.04@sha256:6be099eb1a2259fe268e7c34f6b8aeef68ef57377c0cbb97d5d2c45a824d7ba0 0.0s done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 378.88kB 0.2s done
+#5 DONE 0.3s
+
+#6 [2/6] COPY toolchain/ /
+#6 CACHED
+
+#7 [3/6] COPY runtime/ /opt/bolt/
+#7 CACHED
+
+#8 [4/6] COPY llvm-test-tools/ /opt/llvm/
+#8 DONE 0.3s
+
+#9 [5/6] COPY project/ /project/
+#9 DONE 0.1s
+
+#10 [6/6] WORKDIR /project
+#10 DONE 0.1s
+
+#11 exporting to image
+#11 exporting layers
+#11 exporting layers 0.2s done
+#11 exporting manifest sha256:b64c6b41b3aa497311dc4214a815b087f5692d30001560fa848c2b08161bc935 0.0s done
+#11 exporting config sha256:ee0f2331a0e43a81a2a40683d597cf5094948f80d6eb68c46a0580a9cc0eaf4b 0.0s done
+#11 exporting attestation manifest sha256:b1f7d94ebcaac7b4a17172fe369c698619723e0ac6716b5914e3a17aabcd1621 0.0s done
+#11 exporting manifest list sha256:d416a7c6bfc114e969f79e851ee63184a6a656127756be0808847548edd0f1e9 0.0s done
+#11 naming to docker.io/library/bolt-small-layout:verified done
+#11 unpacking to docker.io/library/bolt-small-layout:verified 0.1s done
+#11 DONE 0.4s

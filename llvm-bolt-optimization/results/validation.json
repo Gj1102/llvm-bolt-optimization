@@ -1,0 +1,51 @@
+{
+  "verified_date": "2026-11-11",
+  "llvm_revision": "4794d35597983f112aafad8d72a5469d80163b7c",
+  "release_build_with_assertions": "passed",
+  "patch_apply_check": "passed",
+  "lit_tests_passed": 1,
+  "functional_checks": [
+    "correlated: 16 output comparisons; model monotonicity; default-off order",
+    "dispersed: 16 output comparisons; model monotonicity; default-off order",
+    "ordinary: 16 output comparisons; model monotonicity; default-off order",
+    "ordinary: zero swaps and identical order",
+    "missing profile: skipped; identical order and output"
+  ],
+  "regression_checks": [
+    "accept: passed; swaps=1",
+    "tie: passed; swaps=0",
+    "external-veto: passed; swaps=0",
+    "low-count: passed; swaps=0",
+    "explicit user order: skipped and preserved",
+    "missing relocations: skipped; executable runs"
+  ],
+  "timed_runs": 465,
+  "runs_per_case_and_mode": 31,
+  "binary_artifacts_in_submission": [],
+  "docker_image_validation": "passed: offline Ubuntu runtime image build and full functional tests",
+  "docker_image_id": "sha256:d416a7c6bfc114e969f79e851ee63184a6a656127756be0808847548edd0f1e9",
+  "independent_confirmation": [
+    {
+      "case": "correlated",
+      "baseline": "off",
+      "treatment": "on",
+      "paired_median_gain_percent": 2.631198077578223,
+      "bootstrap_95_percentile_interval_percent": [
+        1.2083793424590539,
+        4.3082009117783375
+      ],
+      "note": "Exploratory paired-block bootstrap; assumes independent repeat blocks. VM/frequency effects may violate this assumption."
+    },
+    {
+      "case": "correlated",
+      "baseline": "cdsort",
+      "treatment": "cdsort-on",
+      "paired_median_gain_percent": -1.0374369332401434,
+      "bootstrap_95_percentile_interval_percent": [
+        -2.584313692306184,
+        0.3016978552822458
+      ],
+      "note": "Exploratory paired-block bootstrap; assumes independent repeat blocks. VM/frequency effects may violate this assumption."
+    }
+  ]
+}

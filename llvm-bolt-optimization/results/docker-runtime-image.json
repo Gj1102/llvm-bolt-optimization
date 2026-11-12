@@ -1,0 +1,53 @@
+[
+    {
+        "Id": "sha256:d416a7c6bfc114e969f79e851ee63184a6a656127756be0808847548edd0f1e9",
+        "RepoTags": [
+            "bolt-small-layout:verified"
+        ],
+        "RepoDigests": [
+            "bolt-small-layout@sha256:d416a7c6bfc114e969f79e851ee63184a6a656127756be0808847548edd0f1e9"
+        ],
+        "Comment": "buildkit.dockerfile.v0",
+        "Created": "2026-11-11T23:27:48.238720104+08:00",
+        "Config": {
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "DEBIAN_FRONTEND=noninteractive",
+                "BOLT=/opt/bolt/bin/llvm-bolt",
+                "LLVM_SOURCE=/opt/llvm",
+                "WORK=/tmp/bolt-experiments"
+            ],
+            "Cmd": [
+                "bash",
+                "scripts/run_all.sh"
+            ],
+            "WorkingDir": "/project",
+            "Labels": {
+                "org.opencontainers.image.version": "24.04"
+            },
+            "ArgsEscaped": true
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 214371088,
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:bec87777bc2fb2edcdf9af11df1531469e7df911309c1413082b18fcb8610278",
+                "sha256:79bb9b62674b4ced2c5b2504615b5a810b1b0f76c2a4241a436a68e718868aef",
+                "sha256:334d44c2387448cd83ac8b1d0b601ae80aabc6fa416218b556dcd96a3099039d",
+                "sha256:18625a003837f0f01e8607be6a22ca049d8f8d96edede714db094a89194e423f",
+                "sha256:34e20575ae8ba8d0c41993015f4e45d54d2a989a801097720e7d35d7b5abdd8c",
+                "sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2026-11-11T15:27:48.530689521Z"
+        },
+        "Descriptor": {
+            "mediaType": "application/vnd.oci.image.index.v1+json",
+            "digest": "sha256:d416a7c6bfc114e969f79e851ee63184a6a656127756be0808847548edd0f1e9",
+            "size": 856
+        }
+    }
+]

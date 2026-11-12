@@ -1,0 +1,14 @@
+[1/6] Performing build step for 'bolt_rt'
+ninja: no work to do.
+[2/6] No install step for 'bolt_rt'
+[3/6] Completed 'bolt_rt'
+[4/6] Building CXX object tools/bolt/lib/Passes/CMakeFiles/LLVMBOLTPasses.dir/ReorderFunctions.cpp.o
+[5/6] Linking CXX static library lib/libLLVMBOLTPasses.a
+[6/6] Linking CXX executable bin/llvm-bolt
+[1/6] Performing build step for 'bolt_rt'
+ninja: no work to do.
+[2/6] No install step for 'bolt_rt'
+[3/6] Completed 'bolt_rt'
+[4/6] Building CXX object tools/bolt/lib/Passes/CMakeFiles/LLVMBOLTPasses.dir/ReorderFunctions.cpp.o
+[5/6] Linking CXX static library lib/libLLVMBOLTPasses.a
+[6/6] Linking CXX executable bin/llvm-bolt

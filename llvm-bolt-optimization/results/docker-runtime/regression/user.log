@@ -1,0 +1,16 @@
+BOLT-INFO: Target architecture: x86_64
+BOLT-INFO: BOLT version: 4794d35597983f112aafad8d72a5469d80163b7c
+BOLT-INFO: first alloc address is 0x400000
+BOLT-INFO: creating new program header table at address 0x600000, offset 0x200000
+BOLT-INFO: enabling relocation mode
+BOLT-INFO: enabling lite mode
+BOLT-INFO: pre-processing profile using branch profile reader
+BOLT-INFO: 4 out of 12 functions in the binary (33.3%) have non-empty execution profile
+BOLT-INFO: profile for 1 objects was ignored
+BOLT-INFO: profile quality metrics for the hottest 4 functions (reporting top 5% values): function CFG discontinuity 0.00%; call graph flow conservation gap 0.00%; CFG flow conservation gap 100.00% (weighted) 0.00% (worst); exception handling usage 0.00% (of total BBEC) 0.00% (of total InvokeEC)
+BOLT-INFO: --function-order specified without --reorder-functions, defaulting to --reorder-functions=user
+BOLT-INFO: 4 functions pinned by order file, remaining functions will be ordered by algorithm
+BOLT-INFO: small-function-layout: skipped (unsupported order)
+BOLT-INFO: dumped function order to /tmp/bolt-experiments/regression/user-output.order
+BOLT-INFO: patched build-id (flipped first and last bits)
+BOLT-INFO: setting _end to 0x800384
