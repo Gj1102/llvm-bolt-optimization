@@ -99,4 +99,3 @@ git -C /path/to/llvm-project apply --check "$PWD/patches/small-function-layout.p
 git -C /path/to/llvm-project apply "$PWD/patches/small-function-layout.patch"
 ```
 
-上传 GitHub 时只上传本目录。课程对 AI 辅助的要求由提交者自行核实；请理解实现并如实说明使用方式。
