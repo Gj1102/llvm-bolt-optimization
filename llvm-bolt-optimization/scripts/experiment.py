@@ -12,6 +12,7 @@ import re
 import shutil
 import statistics
 import subprocess
+import tempfile
 import time
 
 PROJECT = Path(__file__).resolve().parents[1]
@@ -89,6 +90,25 @@ def sizes(binary):
             'sha256': hashlib.sha256(binary.read_bytes()).hexdigest()}
 
 
+def code_sections(binary):
+    """Return executable section bytes keyed by section name (GNU binutils)."""
+    lines = run(['objdump', '-h', binary]).splitlines()
+    names = []
+    for index, line in enumerate(lines[:-1]):
+        fields = line.split()
+        if len(fields) >= 3 and fields[0].isdigit() and 'CODE' in lines[index + 1]:
+            names.append(fields[1])
+    if not names:
+        raise AssertionError('No CODE sections found in ' + str(binary))
+    sections = {}
+    with tempfile.TemporaryDirectory() as directory:
+        for index, name in enumerate(names):
+            output = Path(directory) / str(index)
+            run(['objcopy', '--dump-section', name + '=' + str(output), binary])
+            sections[name] = output.read_bytes()
+    return sections
+
+
 def prepare(args):
     work, bolt = args.work, args.bolt
     work.mkdir(parents=True, exist_ok=True)
@@ -153,6 +173,10 @@ def functional(args):
                 assert stat['model_after'] <= stat['model_before'], (name, mode, 'model regressed')
                 if stat['swaps']:
                     assert stat['model_after'] < stat['model_before']
+            if stat['swaps'] == 0:
+                base = 'off' if mode == 'on' else 'cdsort'
+                assert (case / (mode + '.order')).read_bytes() == (case / (base + '.order')).read_bytes()
+                assert code_sections(case / mode) == code_sections(case / base), (name, mode, 'CODE sections differ')
         # An option that is default-off must preserve the baseline layout.
         run([args.bolt, case / 'original', '--data=' + str(case / 'profile.fdata'),
              '--reorder-functions=exec-count', '--reorder-blocks=none',
@@ -179,7 +203,9 @@ def functional(args):
         assert run([ordinary / ('no-profile-' + mode), 17]) == run([ordinary / 'original', 17])
     assert 'no valid call edges' in (ordinary / 'no-profile-on.log').read_text()
     assert (ordinary / 'no-profile-off.order').read_bytes() == (ordinary / 'no-profile-on.order').read_bytes()
-    checks += ['ordinary: zero swaps and identical order', 'missing profile: skipped; identical order and output']
+    assert code_sections(ordinary / 'no-profile-off') == code_sections(ordinary / 'no-profile-on')
+    checks += ['zero swaps: identical order and CODE sections',
+               'missing profile: skipped; identical order, CODE sections and output']
     (args.work / 'functional.json').write_text(json.dumps({'passed': checks}, indent=2))
     print('\n'.join(checks), flush=True)
 
