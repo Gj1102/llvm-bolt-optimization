@@ -58,6 +58,8 @@ python3 scripts/experiment.py benchmark --repeats 15 --min-seconds 0.4
 
 ## Docker
 
+课程交付镜像已发布：[Release 页面](https://github.com/Gj1102/llvm-bolt-optimization/releases/tag/v1.0-course) · [下载镜像 tar](https://github.com/Gj1102/llvm-bolt-optimization/releases/download/v1.0-course/bolt-small-layout.tar)。导入和验收步骤见 [Docker 说明](docs/docker.md)；镜像尚未在另一台机器独立验证。
+
 本次已验证 `Dockerfile.runtime`：使用官方 Ubuntu 24.04 基础镜像，打包已编译 BOLT、插桩运行库、本机 GCC/Python 工具链和测试文件。
 镜像构建及容器功能测试均在 `--network=none` 下通过，镜像名为 `bolt-small-layout:verified`。
 完整步骤、适用环境和两条构建路线见 [Docker 说明](docs/docker.md)。
