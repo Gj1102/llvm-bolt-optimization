@@ -1,0 +1,8 @@
+Official upstream: https://github.com/llvm/llvm-project.git
+git rev-parse HEAD
+4794d35597983f112aafad8d72a5469d80163b7c
+git status --short --untracked-files=no
+(no output)
+git apply --check patches/small-function-layout.patch (absolute path supplied)
+(no output)
+exit code: 0

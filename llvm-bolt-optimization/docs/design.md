@@ -1,5 +1,19 @@
 # 设计说明
 
+## 2026-11-23 上游实现比较
+
+本次从官方仓库获取 main 提交 `3c34fcd0a6a8434eb4756e85a8f4c6383815daf9`，阅读 `bolt/lib/Passes/ReorderFunctions.cpp`、`bolt/lib/Passes/HFSort.cpp` 和 `llvm/lib/Transforms/Utils/CodeLayout.cpp`，并结合本项目补丁对比。main 会继续变化；以下结论只适用于该提交和所检查的布局路径，不是对所有上游研究或仓库代码的穷尽证明。
+
+| 比较项 | 上游实现及关键函数 | 本项目补丁 |
+|---|---|---|
+| 入口和选项 | `ReorderFunctions.cpp` 的 `ReorderFunctions::runOnFunctions` 按 `--reorder-functions` 选择 exec-count、HFSort、CDSort、Pettis-Hansen 等，最终调用 `reorder` | 独立、默认关闭的 `--small-function-layout`，在基线排序后执行 `refineSmallFunctionLayout` |
+| 候选筛选 | 构建聚类调用图时过滤无 profile、非 CFG 等函数；HFSort 的 `clusterize` 处理有采样的函数 | 仅交换有有效 profile 和索引、执行计数至少 100、估计大小 1–128 字节等条件的函数；不合格函数形成边界 |
+| 布局操作 | HFSort 的 `clusterize` 根据前驱调用概率、簇大小和密度约束合并簇；CDSort 的 `computeCacheDirectedLayout` 由 `getBestMergeGain` 选择链合并；`pettisAndHansen` 是另一种聚类路径 | 已有顺序上只尝试相邻合格函数交换，最多 64 轮，不跨不合格函数 |
+| 目标与收益 | CDSort 的 `computeMergeGain` 组合 `freqBasedLocalityGain` 与 `distBasedLocalityGain`；距离得分按调用次数和距离的幂计算，并对短链加权 | 对受交换影响的全部有效调用边计算加权绝对距离变化，只有严格下降且超过容差才接受；并非 CDSort 的得分函数 |
+| 保护条件 | 上游支持用户顺序及不同排序策略，要求按对应路径处理 | 无有效调用边、无重定位或不支持的排序等条件下跳过；用户顺序受保护 |
+
+所检查的入口和上述布局实现中没有发现与本项目的筛选条件、相邻交换和全图受影响边距离判定组合等价的步骤，也没有 `--small-function-layout` 选项。HFSort 与 CDSort 已有利用调用权重、大小和局部性的机制，因此本项目的增量仅是现有排序后的受限局部修正，不应声称首创调用图布局或证明普遍性能提升。
+
 ## 问题与已有实现
 
 LLVM BOLT 已有 `hfsort` 和 `cdsort`，因此“把高频调用的函数靠近”不是本项目的新贡献。
@@ -57,7 +71,7 @@ D = Σ weight(u,v) × |address(u) + avgCallOffset(u,v) - address(v)|
 
 ## 正确性与验证
 
-功能脚本还会在优化报告零交换或跳过时，比较开关两侧的函数顺序和 GNU binutils 标记为 CODE 的各段原始字节；无 profile 的普通程序也进行相同检查。脚本要求 `objdump` 和 `objcopy`。这些检查针对测试实例，不构成所有程序无性能回退的证明；新增代码段比较需要在目标 Linux 环境重新运行，历史结果不包含该检查。
+功能脚本还会在优化报告零交换或跳过时，比较开关两侧的函数顺序和 GNU binutils 标记为 CODE 的各段原始字节；无 profile 的普通程序也进行相同检查。脚本要求 `objdump` 和 `objcopy`。2026-11-23 在 WSL Ubuntu 24.04 和已有运行镜像中运行功能测试均通过；历史结果不包含此新增检查。这些检查针对测试实例，不构成所有程序无性能回退的证明。
 
 新步骤只交换索引，复用 BOLT 的代码重定位、分支修正与输出流程。
 阈值和 profile 条件限制优化范围；不合格函数保持其基线索引，而非承诺字节地址不变。

@@ -1,0 +1,22 @@
+-- Testing: 1 tests, 1 workers --
+PASS: BOLT small-function-layout :: small-function-layout.s (1 of 1)
+
+Testing Time: 0.35s
+
+Total Discovered Tests: 1
+  Passed: 1 (100.00%)
+
+accept: passed; swaps=1
+tie: passed; swaps=0
+external-veto: passed; swaps=0
+low-count: passed; swaps=0
+explicit user order: skipped and preserved
+missing relocations: skipped; executable runs
+Prepared correlated
+Prepared dispersed
+Prepared ordinary
+correlated: 16 output comparisons; model monotonicity; default-off order
+dispersed: 16 output comparisons; model monotonicity; default-off order
+ordinary: 16 output comparisons; model monotonicity; default-off order
+zero swaps: identical order and CODE sections
+missing profile: skipped; identical order, CODE sections and output

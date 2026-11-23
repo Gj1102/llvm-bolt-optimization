@@ -9,6 +9,7 @@
 关联小函数负载的估计距离下降约 6.65%；两轮各 31 次的实验中，配对时间改善中位数分别为 2.44% 和 2.63%，探索性区间均为正。
 收益限定于本机这类合成负载；分散调用未显示可靠收益，普通程序未交换函数，CDSort 基线上未确认额外性能收益。
 见 [实验报告](results/RESULTS.md)、[独立确认](results/confirmation64/RESULTS.md) 和 [验证清单](results/validation.json)。
+2026-11-23 的 WSL 和已有运行镜像功能验收记录见 [验收记录](docs/acceptance-2026-11-23.md)；镜像导出和复现方法见 [Docker 说明](docs/docker.md)。
 原 8 轮版本及不支持稳定收益的旧数据保留在 `results/eight-rounds/` 和 `results/confirmation/`。
 
 ## 文件
